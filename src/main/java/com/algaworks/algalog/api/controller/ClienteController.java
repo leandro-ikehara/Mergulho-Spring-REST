@@ -2,6 +2,7 @@ package com.algaworks.algalog.api.controller;
 
 import com.algaworks.algalog.domain.model.Cliente;
 import com.algaworks.algalog.domain.repository.ClienteRepository;
+import com.algaworks.algalog.domain.service.CatalogoClienteService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ public class ClienteController
 {
     @Autowired
     private ClienteRepository clienteRepository;
+    private CatalogoClienteService catalogoClienteService; // Essa classe é responsável pelas regras de negócio
 
     @GetMapping
     public List<Cliente> listar()
@@ -48,7 +50,8 @@ public class ClienteController
     @ResponseStatus(HttpStatus.CREATED)
     public Cliente adicionar(@Valid @RequestBody Cliente cliente)
     {
-        return clienteRepository.save(cliente);
+//        return clienteRepository.save(cliente);
+        return catalogoClienteService.salvar(cliente);
     }
 
     @PutMapping("/{clienteId}")
@@ -59,7 +62,9 @@ public class ClienteController
             return ResponseEntity.notFound().build();
         }
         cliente.setId(clienteId);
-        cliente = clienteRepository.save(cliente);
+//        cliente = clienteRepository.save(cliente);
+        cliente = catalogoClienteService.salvar(cliente);
+
         return ResponseEntity.ok(cliente);
     }
 
@@ -70,7 +75,9 @@ public class ClienteController
         {
             return ResponseEntity.notFound().build();
         }
-        clienteRepository.deleteById(clienteId);
+//        clienteRepository.deleteById(clienteId);
+        catalogoClienteService.remover(clienteId);
+
         return ResponseEntity.noContent().build();
     }
 }
