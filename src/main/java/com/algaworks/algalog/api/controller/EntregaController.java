@@ -1,7 +1,9 @@
 package com.algaworks.algalog.api.controller;
 
+import com.algaworks.algalog.api.assembler.EntregaMapper;
 import com.algaworks.algalog.api.model.DestinatarioModel;
 import com.algaworks.algalog.api.model.EntregaModel;
+import com.algaworks.algalog.api.model.input.EntregaInput;
 import com.algaworks.algalog.domain.model.Entrega;
 import com.algaworks.algalog.domain.repository.EntregaRepository;
 import com.algaworks.algalog.domain.service.SolicitacaoEntregaService;
@@ -21,44 +23,26 @@ public class EntregaController
 {
     private EntregaRepository entregaRepository;
     private SolicitacaoEntregaService solicitacaoEntregaService;
-    private ModelMapper modelMapper;
+    private EntregaMapper entregaMapper;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Entrega solicitar(@Valid @RequestBody Entrega entrega)
+    public EntregaModel solicitar(@Valid @RequestBody EntregaInput entregaInput)
     {
-        return solicitacaoEntregaService.solicitar(entrega);
+        Entrega novaEntrega = entregaMapper.toEntity(entregaInput);
+        Entrega entregaSolicitada = solicitacaoEntregaService.solicitar(novaEntrega);
+        return entregaMapper.toModel(entregaSolicitada);
     }
 
     @GetMapping
-    public List<Entrega> listar() {
-        return entregaRepository.findAll();
+    public List<EntregaModel> listar() {
+        return entregaMapper.toCollectionModel(entregaRepository.findAll());
     }
 
     @GetMapping("/{entregaId}")
     public ResponseEntity<EntregaModel> buscar(@PathVariable Long entregaId) {
         return entregaRepository.findById(entregaId)
-                .map(entrega -> {
-                    EntregaModel entregaModel = modelMapper.map(entrega, EntregaModel.class);
-
-//                    EntregaModel entregaModel = new EntregaModel();
-//                    entregaModel.setId(entrega.getId());
-//                    entregaModel.setNomeCliente(entrega.getCliente().getNome());
-//
-//                    entregaModel.setDestinatario(new DestinatarioModel());
-//                    entregaModel.getDestinatario().setNome(entrega.getDestinatario().getNome());
-//                    entregaModel.getDestinatario().setLogradouro(entrega.getDestinatario().getLogradouro());
-//                    entregaModel.getDestinatario().setNumero(entrega.getDestinatario().getNumero());
-//                    entregaModel.getDestinatario().setComplemento(entrega.getDestinatario().getComplemento());
-//                    entregaModel.getDestinatario().setBairro(entrega.getDestinatario().getBairro());
-//
-//                    entregaModel.setTaxa(entrega.getTaxa());
-//                    entregaModel.setStatus(entrega.getStatus());
-//                    entregaModel.setDataPedido(entrega.getDataPedido());
-//                    entregaModel.setDataFinalizacao(entrega.getDataFinalizacao());
-
-                    return ResponseEntity.ok(entregaModel);
-                }).orElse(ResponseEntity.notFound().build());
-
+                .map(entrega -> ResponseEntity.ok(entregaMapper.toModel(entrega)))
+                        .orElse(ResponseEntity.notFound().build());
     }
 }
